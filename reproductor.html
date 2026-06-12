@@ -318,48 +318,43 @@ async function deleteBook(bookId) {
 }
 
 // ════ Sincronización con GitHub (repo público, sin token) ════
-
-async function downloadAsset(asset) {
-    try {
-        const r = await fetch(asset.url, { headers: { 'Accept': 'application/octet-stream' } });
-        if (r.ok) return await r.arrayBuffer();
-    } catch (e) { /* probar la otra URL */ }
-    const r2 = await fetch(asset.browser_download_url);
-    if (!r2.ok) throw new Error('Descarga fallida: HTTP ' + r2.status);
-    return await r2.arrayBuffer();
-}
+// Los libros viven en la rama 'libros' del repo (los publica
+// scripts/publicar_libros.py desde el equipo principal). Se descargan por
+// raw.githubusercontent.com porque los assets de GitHub Releases no
+// permiten CORS desde el navegador.
 
 async function syncNow() {
     const repo = (await kvGet('repo')) || DEFAULT_REPO;
+    const base = 'https://raw.githubusercontent.com/' + repo + '/libros/';
     setSync('Buscando libros en GitHub (' + repo + ')...');
-    let releases;
+    let index;
     try {
-        const r = await fetch('https://api.github.com/repos/' + repo + '/releases?per_page=100');
+        const r = await fetch(base + 'index.json', { cache: 'no-store' });
+        if (r.status === 404) {
+            setSync('Conectado a ' + repo + ' — aún no hay libros publicados. El equipo principal debe ejecutar publicar_libros.py.');
+            return;
+        }
         if (!r.ok) throw new Error('GitHub respondió HTTP ' + r.status);
-        releases = await r.json();
+        index = await r.json();
     } catch (e) {
         setSync('Sin conexión con GitHub: ' + e.message + ' — tus libros ya descargados siguen disponibles.', true);
         return;
     }
-    const bookReleases = releases.filter(r => r.tag_name && r.tag_name.startsWith('book-') && (r.assets || []).length);
-    if (!bookReleases.length) {
-        setSync('Conectado a ' + repo + ' — aún no hay libros publicados. El equipo principal debe ejecutar sync_to_github.py.');
-        return;
-    }
     let imported = 0;
-    for (const rel of bookReleases) {
-        const asset = rel.assets[0];
-        const rec = await kvGet('tag:' + rel.tag_name);
-        if (rec && rec.assetId === asset.id) continue;
+    for (const pub of (index.books || [])) {
+        const rec = await kvGet('pub:' + pub.id);
+        if (rec && rec.sha === pub.sha256) continue;
         try {
-            setSync('Descargando "' + (rel.name || rel.tag_name) + '" (' + (asset.size / 1048576).toFixed(1) + ' MB)...');
-            const buf = await downloadAsset(asset);
+            setSync('Descargando "' + pub.title + '" (' + (pub.size / 1048576).toFixed(1) + ' MB)...');
+            const r = await fetch(base + pub.file, { cache: 'no-store' });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const buf = await r.arrayBuffer();
             if (rec) await deleteBook(rec.bookId);  // el libro fue re-publicado: reemplazar
             const info = await importZip(buf);
-            await kvSet('tag:' + rel.tag_name, { assetId: asset.id, bookId: info.bookId });
+            await kvSet('pub:' + pub.id, { sha: pub.sha256, bookId: info.bookId });
             imported++;
         } catch (e) {
-            setSync('Error importando ' + rel.tag_name + ': ' + e.message, true);
+            setSync('Error descargando "' + pub.title + '": ' + e.message, true);
             return;
         }
     }

@@ -111,48 +111,44 @@ contiene `metadata.json` (texto + estructura) y la carpeta `audio/`.
 
 ### Opción B0 — `reproductor.html` (recomendada: CERO instalación)
 
-Si el repo es **público**, PC B no necesita instalar absolutamente nada —
-ni Python, ni instalador, ni ventana negra:
+PC B no necesita instalar absolutamente nada — ni Python, ni servidor,
+ni ventana negra. Hay dos formas de llegar al mismo sitio:
 
-1. Lleva a PC B el archivo **`reproductor.html`** (correo, WhatsApp, USB) o
-   descárgalo del repo en GitHub (*Code → reproductor.html → Download raw file*).
-2. **Doble clic** → se abre en el navegador (Chrome o Edge).
-3. Pulsa **"Buscar libros nuevos"** → descarga los libros publicados
-   directamente de GitHub y los guarda **dentro del navegador**.
+**Con `instalar_equipo2.bat`** (la cómoda): lleva ese único .bat a PC B y
+haz doble clic. Descarga `reproductor.html` desde GitHub, lo deja junto al
+.bat y lo abre en el navegador. Volver a ejecutarlo = actualizar el
+reproductor (los libros y el progreso nunca se tocan). Sin internet, abre
+la versión ya descargada.
 
-Recuerda por dónde vas, funciona sin internet una vez descargados los
-libros, y revisa GitHub cada 5 minutos él solo. También acepta arrastrar
-un `.zip` de libro pasado por USB. Lo único: no borres los "datos de
-sitios" de ese navegador, porque ahí viven los libros y el progreso.
+**A mano**: lleva directamente el archivo **`reproductor.html`** (correo,
+WhatsApp, USB) o descárgalo del repo en GitHub (*Code → reproductor.html →
+Download raw file*) y haz doble clic.
 
-Las opciones siguientes (servidor local con Python) quedan para repos
-privados o si prefieres que los datos vivan en una carpeta normal del disco.
+Una vez abierto en el navegador (Chrome o Edge):
 
-### Opción B1 — Instalador automático (`instalar_equipo2.bat`)
+- Pulsa **"Buscar libros nuevos"** → descarga los libros publicados
+  directamente de GitHub Releases y los guarda **dentro del navegador**.
+- Recuerda por dónde vas y funciona sin internet una vez descargados.
+- Revisa GitHub cada 5 minutos él solo.
+- También acepta arrastrar un `.zip` de libro pasado por USB.
 
-A PC B solo hay que llevarle **UN archivo: `instalar_equipo2.bat`**
-(mándalo por correo, WhatsApp, USB, lo que sea). Todo lo demás se lo
-descarga él solo desde GitHub.
+Lo único: no borres los "datos de sitios" de ese navegador, porque ahí
+viven los libros y el progreso. Requiere que el repo sea **público**.
 
-1. Doble clic en **`instalar_equipo2.bat`**.
-2. La primera vez pide el repo (`usuario/repositorio`). El token solo se
-   pide si el repo es **privado** (con repo público basta pulsar Enter).
-3. Descarga el código del repo, lo instala en una carpeta `AudioBookLite`
-   junto al .bat, guarda el `.env` y arranca `run.bat` → abre solo en
-   **http://localhost:9002**.
+### Opción B1 — Servidor local con Python (`player_lite/`)
 
-**Actualizar PC B** = volver a ejecutar `instalar_equipo2.bat`. Baja la
-última versión del código sin tocar los libros, el audio ni el progreso.
-
-(Alternativa sin GitHub: copiar la carpeta `player_lite/` completa por USB
-y hacer doble clic en su `run.bat`; ver `player_lite/LEEME.txt`.)
+Para repos **privados** o si prefieres que los datos vivan en una carpeta
+normal del disco: copiar la carpeta `player_lite/` completa por USB y hacer
+doble clic en su `run.bat` → abre en **http://localhost:9002**
+(ver `player_lite/LEEME.txt`).
 
 **Python se instala solo:** `run.bat` analiza el equipo; si no encuentra
 Python ≥ 3.10 lo instala automáticamente (primero con `winget`, si no
-descargando el instalador oficial de python.org en modo silencioso). Solo
-hace falta internet la primera vez. Si tras instalar pide "cierra esta
-ventana y vuelve a ejecutar run.bat", basta con relanzarlo. Sin internet:
-instalar Python a mano desde python.org (marcar *"Add Python to PATH"*).
+descargando el instalador oficial de python.org según la arquitectura del
+equipo). Solo hace falta internet la primera vez. Si tras instalar pide
+"cierra esta ventana y vuelve a ejecutar run.bat", basta con relanzarlo.
+Sin internet: instalar Python a mano desde python.org (marcar *"Add Python
+to PATH"*).
 
 Qué hace PC B:
 
@@ -177,7 +173,8 @@ SYNC_INTERVAL_MINUTES=5    # cada cuánto revisar GitHub
 | Acción | Dónde | Cómo |
 |--------|-------|------|
 | Agregar un libro | PC A | Subir archivo + "Generar todo el audio" |
-| Publicar a GitHub | PC A | Automático al terminar (o `sync_to_github.py`) |
+| Publicar a GitHub (reproductor web, B0) | PC A | `python scripts/publicar_libros.py` (sin token, usa la credencial de git) |
+| Publicar a GitHub (player_lite, B1) | PC A | `python scripts/sync_to_github.py` (necesita token en `.env`) |
 | Recibir el libro | PC B | Automático (≤5 min) o "Sincronizar ahora" |
 | Escuchar / continuar | PC B | Abrir el libro; recuerda el segmento |
 | Reiniciar un libro (volver al 0%) | PC A o PC B | Botón **↺ Reiniciar** en la tarjeta del libro |
