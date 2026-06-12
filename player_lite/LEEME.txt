@@ -28,13 +28,17 @@ PASO 2 — Configurar de donde bajar los libros
 ------------------------------------------------------------
   1. En esta carpeta, copia el archivo  ".env.example"
      y renombra la copia a   ".env"   (sin nada antes del punto).
-  2. Abrelo con el Bloc de notas y pega los dos datos que te
+  2. Abrelo con el Bloc de notas y pon el repositorio que te
      paso la persona del otro equipo:
 
-        GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxx
         GITHUB_REPO=usuario/repositorio
 
+     (GITHUB_TOKEN solo hace falta si el repo es privado.)
+
   3. Guarda y cierra.
+
+  NOTA: si llegaste aqui con  instalar_equipo2.bat , esto ya
+  quedo configurado solo y puedes saltarte este paso.
 
   (Si no pones estos datos, igual funciona: podras arrastrar
    archivos .zip de libros a mano, pero no se bajaran solos.)

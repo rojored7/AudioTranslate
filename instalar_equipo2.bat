@@ -4,7 +4,7 @@
 ::
 ::  Este es el UNICO archivo que hay que llevar al otro equipo.
 ::  Que hace:
-::    1. Pide los datos de GitHub (repo y token) la primera vez
+::    1. Pide el repo de GitHub la primera vez (token solo si es privado)
 ::    2. Descarga el codigo del reproductor desde GitHub
 ::    3. Lo instala en la carpeta AudioBookLite junto a este .bat
 ::    4. Arranca run.bat (que instala Python solo si falta)
@@ -35,26 +35,32 @@ if exist "%INSTALL_DIR%\.env" (
 
 if not defined GITHUB_REPO (
     echo Escribe el repositorio de GitHub, formato  usuario/repositorio
-    set /p GITHUB_REPO=Repo:
-)
-if not defined GITHUB_TOKEN (
-    echo.
-    echo Pega el token de GitHub ^(empieza por ghp_...^)
-    set /p GITHUB_TOKEN=Token:
+    set /p "GITHUB_REPO=Repo: "
 )
 if not defined GITHUB_REPO goto datos_invalidos
-if not defined GITHUB_TOKEN goto datos_invalidos
+
+if not defined GITHUB_TOKEN (
+    echo.
+    echo Si el repo es PUBLICO solo pulsa Enter.
+    echo Si es PRIVADO pega el token ghp_... y Enter.
+    set /p "GITHUB_TOKEN=Token [Enter para omitir]: "
+)
 
 :: --- PASO 2: descargar el codigo desde GitHub ---
 echo.
 echo [1/3] Descargando la ultima version desde GitHub...
-curl.exe -L --fail -H "Authorization: Bearer %GITHUB_TOKEN%" -H "Accept: application/vnd.github+json" -o "%ZIP%" "https://api.github.com/repos/%GITHUB_REPO%/zipball"
+if defined GITHUB_TOKEN (
+    curl.exe -L --fail -H "Authorization: Bearer %GITHUB_TOKEN%" -H "Accept: application/vnd.github+json" -o "%ZIP%" "https://api.github.com/repos/%GITHUB_REPO%/zipball"
+) else (
+    curl.exe -L --fail -H "Accept: application/vnd.github+json" -o "%ZIP%" "https://api.github.com/repos/%GITHUB_REPO%/zipball"
+)
 if errorlevel 1 (
     echo.
     echo ERROR: no se pudo descargar. Revisa:
     echo   - que hay internet
     echo   - que el repo es  %GITHUB_REPO%  ^(formato usuario/repositorio^)
-    echo   - que el token es valido y tiene permiso "repo"
+    echo   - si el repo es PRIVADO, hace falta un token: borra la carpeta
+    echo     AudioBookLite\.env si existe y vuelve a ejecutar este .bat
     goto end
 )
 
@@ -81,8 +87,8 @@ xcopy "%SRC%\player_lite" "%INSTALL_DIR%" /e /i /y >nul
 
 :: guardar la configuracion para el sync automatico y futuras actualizaciones
 (
-    echo GITHUB_TOKEN=%GITHUB_TOKEN%
     echo GITHUB_REPO=%GITHUB_REPO%
+    if defined GITHUB_TOKEN echo GITHUB_TOKEN=%GITHUB_TOKEN%
 ) > "%INSTALL_DIR%\.env"
 
 :: limpiar temporales
@@ -97,8 +103,8 @@ goto :eof
 
 :datos_invalidos
 echo.
-echo No se puede continuar sin el repo y el token de GitHub.
-echo Pideselos a la persona del equipo principal ^(estan en su archivo .env^).
+echo No se puede continuar sin el nombre del repo de GitHub.
+echo Es el mismo que usa el equipo principal, formato usuario/repositorio
 
 :end
 pause

@@ -38,7 +38,8 @@ PORT = 9002
 GITHUB_TOKEN    = os.environ.get("GITHUB_TOKEN", "")
 GITHUB_REPO     = os.environ.get("GITHUB_REPO", "")      # "owner/repo"
 SYNC_INTERVAL   = int(os.environ.get("SYNC_INTERVAL_MINUTES", "5")) * 60  # seconds
-SYNC_ENABLED    = bool(GITHUB_TOKEN and GITHUB_REPO)
+# Token opcional: un repo PUBLICO se sincroniza sin token (solo el repo).
+SYNC_ENABLED    = bool(GITHUB_REPO)
 GITHUB_API_BASE = "https://api.github.com"
 
 MIME = {
@@ -219,11 +220,12 @@ def db_set_sync_state(key: str, value: str) -> None:
 def _gh_request(method: str, path: str, body: bytes | None = None):
     url = f"{GITHUB_API_BASE}{path}"
     headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
         "User-Agent": "AudioTranslate-Lite/1.0",
     }
+    if GITHUB_TOKEN:  # repos publicos funcionan sin token
+        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
     if body is not None:
         headers["Content-Type"] = "application/json"
     req = urllib.request.Request(url, data=body, headers=headers, method=method)
@@ -232,11 +234,13 @@ def _gh_request(method: str, path: str, body: bytes | None = None):
 
 
 def _gh_download(url: str) -> bytes:
-    req = urllib.request.Request(url, headers={
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
+    headers = {
         "Accept": "application/octet-stream",
         "User-Agent": "AudioTranslate-Lite/1.0",
-    })
+    }
+    if GITHUB_TOKEN:  # repos publicos funcionan sin token
+        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=300) as resp:
         return resp.read()
 
@@ -435,7 +439,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         # POST /sync/now
         if parts == ["sync", "now"]:
             if not SYNC_ENABLED:
-                self._send_json({"error": "Sync no configurado. Agrega GITHUB_TOKEN y GITHUB_REPO al .env"}, 503)
+                self._send_json({"error": "Sync no configurado. Agrega GITHUB_REPO al .env (y GITHUB_TOKEN solo si el repo es privado)"}, 503)
                 return
             threading.Thread(target=_sync_once, daemon=True).start()
             self._send_json({"ok": True, "message": "Sincronización iniciada"})
@@ -483,7 +487,7 @@ if __name__ == "__main__":
         t.start()
         print(f"[AudioBook Lite] GitHub sync cada {SYNC_INTERVAL // 60}m desde {GITHUB_REPO}")
     else:
-        print("[AudioBook Lite] Sync desactivado — agrega GITHUB_TOKEN + GITHUB_REPO al .env para activarlo")
+        print("[AudioBook Lite] Sync desactivado — agrega GITHUB_REPO al .env para activarlo (GITHUB_TOKEN solo si el repo es privado)")
 
     server = http.server.HTTPServer(("127.0.0.1", PORT), Handler)
     url = f"http://127.0.0.1:{PORT}"

@@ -32,16 +32,18 @@ motores TTS instalados, físicamente no puede. Solo lee archivos del disco.
 GitHub Releases es el punto de encuentro. Es gratis y soporta archivos grandes
 (hasta 2 GB por libro) sin inflar el repositorio de código.
 
-1. Crea un repositorio **privado** (los libros y el audio se subirán ahí).
-   Puede ser el mismo repo del código o uno aparte solo para los Releases.
-2. Crea un **token de acceso**:
-   `https://github.com/settings/tokens` → *Generate new token (classic)* →
-   marca el scope **`repo`** → genera y copia el token (`ghp_...`).
-3. Guarda dos datos, los usarás en ambos equipos:
-   - `GITHUB_REPO` = `tu-usuario/tu-repo`
-   - `GITHUB_TOKEN` = `ghp_...`
-
-> El repo **debe ser privado**: subes el texto de los libros y el audio completo.
+1. Crea un repositorio (puede ser el mismo repo del código o uno aparte
+   solo para los Releases).
+   - **Público**: PC B no necesita token para nada (más simple).
+   - **Privado**: necesario si tus libros tienen derechos de autor —
+     en un repo público cualquiera puede descargar el texto y el audio.
+2. Crea un **token de acceso** (lo necesita PC A para publicar, sea
+   público o privado): `https://github.com/settings/tokens` →
+   *Generate new token (classic)* → marca el scope **`repo`** →
+   genera y copia el token (`ghp_...`).
+3. Guarda dos datos:
+   - `GITHUB_REPO` = `tu-usuario/tu-repo` (ambos equipos)
+   - `GITHUB_TOKEN` = `ghp_...` (PC A siempre; PC B solo si es privado)
 
 ---
 
@@ -112,8 +114,8 @@ A PC B solo hay que llevarle **UN archivo: `instalar_equipo2.bat`**
 descarga él solo desde GitHub.
 
 1. Doble clic en **`instalar_equipo2.bat`**.
-2. La primera vez pide dos datos (los mismos de PC A): el repo
-   (`usuario/repositorio`) y el token (`ghp_...`).
+2. La primera vez pide el repo (`usuario/repositorio`). El token solo se
+   pide si el repo es **privado** (con repo público basta pulsar Enter).
 3. Descarga el código del repo, lo instala en una carpeta `AudioBookLite`
    junto al .bat, guarda el `.env` y arranca `run.bat` → abre solo en
    **http://localhost:9002**.
