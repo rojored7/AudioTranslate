@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-06-12T22:03:13.305497+00:00",
+  "books": [
+    {
+      "id": 3,
+      "title": "Miyamoto, Musashi - El Libro De Los Cinco Anillos",
+      "author": "Unknown",
+      "format": "pdf",
+      "total_segments": 46,
+      "audio_segments": 46,
+      "file": "book-3.zip",
+      "size": 41704408,
+      "sha256": "3764e35adc7c12f1ec2f91baafd7a56203345316068251ccac725d72dbe965e7"
+    }
+  ]
+}
