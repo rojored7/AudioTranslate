@@ -109,6 +109,27 @@ contiene `metadata.json` (texto + estructura) y la carpeta `audio/`.
 
 ## Parte 2 — PC B: el Reproductor
 
+### Opción B0 — `reproductor.html` (recomendada: CERO instalación)
+
+Si el repo es **público**, PC B no necesita instalar absolutamente nada —
+ni Python, ni instalador, ni ventana negra:
+
+1. Lleva a PC B el archivo **`reproductor.html`** (correo, WhatsApp, USB) o
+   descárgalo del repo en GitHub (*Code → reproductor.html → Download raw file*).
+2. **Doble clic** → se abre en el navegador (Chrome o Edge).
+3. Pulsa **"Buscar libros nuevos"** → descarga los libros publicados
+   directamente de GitHub y los guarda **dentro del navegador**.
+
+Recuerda por dónde vas, funciona sin internet una vez descargados los
+libros, y revisa GitHub cada 5 minutos él solo. También acepta arrastrar
+un `.zip` de libro pasado por USB. Lo único: no borres los "datos de
+sitios" de ese navegador, porque ahí viven los libros y el progreso.
+
+Las opciones siguientes (servidor local con Python) quedan para repos
+privados o si prefieres que los datos vivan en una carpeta normal del disco.
+
+### Opción B1 — Instalador automático (`instalar_equipo2.bat`)
+
 A PC B solo hay que llevarle **UN archivo: `instalar_equipo2.bat`**
 (mándalo por correo, WhatsApp, USB, lo que sea). Todo lo demás se lo
 descarga él solo desde GitHub.

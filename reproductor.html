@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AudioBook — Reproductor</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+    --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #64748b;
+    --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+    --bg: #f8fafc; --text: #1e293b; --text-light: #64748b;
+    --border: #e2e8f0; --radius: 8px;
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+}
+.container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+.header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid var(--border);
+}
+.header h1 { font-size: 1.6em; color: var(--primary); }
+.btn {
+    padding: 10px 20px; border: none; border-radius: var(--radius); cursor: pointer;
+    font-size: 1em; font-weight: 500; transition: all 0.2s ease;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: var(--secondary); color: white; }
+.btn-small { padding: 4px 10px; font-size: 0.82em; white-space: nowrap; flex-shrink: 0; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.sync-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 9px 16px; margin-bottom: 12px; background: #f0f9ff;
+    border: 1px solid #bae6fd; border-radius: var(--radius);
+    font-size: 0.84em; color: #0369a1;
+}
+.sync-bar.sync-error { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+.upload-box {
+    border: 3px dashed var(--primary); border-radius: var(--radius); padding: 24px;
+    text-align: center; cursor: pointer; background: rgba(99,102,241,0.05);
+    margin-bottom: 24px; transition: all 0.3s ease;
+}
+.upload-box:hover, .upload-box--drag { background: rgba(99,102,241,0.12); }
+.books-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.book-card {
+    background: white; border-radius: var(--radius); padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.book-card h3 { margin-bottom: 5px; color: var(--primary); }
+.book-card p { font-size: 0.9em; color: var(--text-light); margin-bottom: 10px; }
+.progress-label { font-size: 0.85em; color: var(--text-light); margin-bottom: 5px; }
+.progress-bar-small { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--success); transition: width 0.3s ease; }
+.book-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.book-actions .btn { flex: 1; padding: 8px 12px; font-size: 0.9em; }
+.loading { text-align: center; color: var(--text-light); padding: 20px; }
+/* Player */
+.player-header {
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    padding: 14px 20px; background: white; border-bottom: 1px solid var(--border);
+}
+.btn-back { background: none; border: none; color: var(--primary); font-size: 1em; cursor: pointer; font-weight: 500; }
+.btn-back:hover { text-decoration: underline; }
+.player-header h1 {
+    flex: 1; text-align: center; color: var(--primary); font-size: 1.1em;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.player-body { display: flex; gap: 16px; padding: 16px; align-items: flex-start; }
+.player-main {
+    flex: 1; display: flex; flex-direction: column; gap: 16px; background: white;
+    border-radius: var(--radius); padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); min-width: 0;
+}
+.no-audio-box {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: #fef3c7; border: 1px solid #fcd34d; border-radius: var(--radius);
+    color: #92400e; font-size: 0.95em; font-weight: 500;
+}
+.segment-text-section {
+    max-height: 280px; overflow-y: auto; padding: 16px; background: var(--bg);
+    border-radius: var(--radius); border: 1px solid var(--border);
+}
+.segment-text { font-size: 1.05em; line-height: 1.8; }
+.player-controls { display: flex; gap: 10px; justify-content: center; }
+.player-controls .btn { padding: 14px 28px; font-size: 1.05em; }
+.speed-section {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-size: 0.9em; color: var(--text-light);
+}
+.speed-section select {
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: var(--radius);
+    font-size: 0.95em; cursor: pointer; background: white;
+}
+.progress-info { font-size: 0.9em; color: var(--text-light); margin-bottom: 10px; text-align: center; }
+.progress-slider {
+    width: 100%; height: 8px; -webkit-appearance: none; appearance: none;
+    background: var(--border); border-radius: 4px; outline: none; cursor: pointer;
+}
+.progress-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 16px; height: 16px;
+    border-radius: 50%; background: var(--primary); cursor: pointer;
+}
+.segments-sidebar {
+    width: 200px; flex-shrink: 0; background: white; border-radius: var(--radius);
+    padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    max-height: calc(100vh - 100px); overflow-y: auto;
+}
+.segments-sidebar h3 { margin-bottom: 15px; color: var(--primary); }
+.segments-list { display: flex; flex-direction: column; gap: 8px; }
+.segment-item {
+    padding: 8px 12px; border-radius: 4px; font-size: 0.85em; cursor: pointer;
+    border: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
+}
+.segment-item:hover { background: var(--bg); }
+.segment-item.active { background: var(--primary); color: white; border-color: var(--primary); }
+.segment-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+.segment-item.cached .segment-dot { background: var(--success); }
+@media (max-width: 768px) {
+    .player-body { flex-direction: column; }
+    .segments-sidebar { width: 100%; max-height: 200px; }
+    .books-list { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════ VISTA BIBLIOTECA ════ -->
+<div id="viewLibrary" class="container">
+    <header class="header">
+        <h1>📚 AudioBook — Reproductor</h1>
+        <span style="font-size:0.85em;color:var(--text-light);">Sin instalación · todo en el navegador</span>
+    </header>
+
+    <div id="syncBar" class="sync-bar">
+        <span id="syncStatusText">Listo.</span>
+        <button id="syncBtn" class="btn btn-primary btn-small">↺ Buscar libros nuevos</button>
+    </div>
+
+    <div class="upload-box" id="importBox">
+        <p>📦 ¿Tienes un .zip de libro a mano (USB)? Arrástralo aquí o haz clic</p>
+        <input type="file" id="fileInput" accept=".zip" style="display:none;">
+    </div>
+
+    <h2 style="margin-bottom:16px;">Mis libros</h2>
+    <div id="booksList" class="books-list"><p class="loading">Cargando...</p></div>
+</div>
+
+<!-- ════ VISTA REPRODUCTOR ════ -->
+<div id="viewPlayer" style="display:none;">
+    <header class="player-header">
+        <button class="btn-back" id="backBtn">← Biblioteca</button>
+        <h1 id="bookTitle">...</h1>
+    </header>
+    <div class="player-body">
+        <main class="player-main">
+            <div id="noAudioBox" class="no-audio-box" style="display:none;">
+                <span>⚠</span><span>Este segmento no tiene audio todavía.</span>
+            </div>
+            <section class="segment-text-section">
+                <div class="segment-text" id="segmentText"></div>
+            </section>
+            <audio id="audioPlayer" controls style="width:100%;"></audio>
+            <section class="player-controls">
+                <button id="prevBtn" class="btn btn-secondary">⏮ Anterior</button>
+                <button id="playPauseBtn" class="btn btn-primary" style="min-width:150px;">▶ Reproducir</button>
+                <button id="nextBtn" class="btn btn-secondary">Siguiente ⏭</button>
+            </section>
+            <section class="speed-section">
+                <label for="speedSelect">Velocidad:</label>
+                <select id="speedSelect">
+                    <option value="0.75">0.75×</option><option value="1" selected>1×</option>
+                    <option value="1.25">1.25×</option><option value="1.5">1.5×</option>
+                    <option value="2">2×</option>
+                </select>
+            </section>
+            <section>
+                <div class="progress-info">
+                    Segmento <span id="currentSegment">0</span> de <span id="totalSegments">0</span>
+                    · <span id="progressPercent">0%</span> del libro
+                </div>
+                <input type="range" id="progressSlider" class="progress-slider" min="0" max="100" value="0">
+            </section>
+        </main>
+        <aside class="segments-sidebar">
+            <h3>Segmentos</h3>
+            <div id="segmentsList" class="segments-list"></div>
+        </aside>
+    </div>
+</div>
+
+<script>
+'use strict';
+
+// ════ Configuración ════
+// Repo público de GitHub del que se descargan los libros (releases book-*).
+const DEFAULT_REPO = 'rojored7/AudioTranslate';
+const SYNC_INTERVAL_MS = 5 * 60 * 1000;
+
+// ════ IndexedDB ════
+let _db = null;
+
+function openDb() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open('audiobook_web', 1);
+        req.onupgradeneeded = () => {
+            const db = req.result;
+            db.createObjectStore('books', { keyPath: 'id', autoIncrement: true });
+            db.createObjectStore('segments', { keyPath: ['book_id', 'idx'] });
+            db.createObjectStore('audio', { keyPath: ['book_id', 'idx'] });
+            db.createObjectStore('kv', { keyPath: 'k' });
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+function tx(store, mode, fn) {
+    return new Promise((resolve, reject) => {
+        const t = _db.transaction(store, mode);
+        const result = fn(t.objectStore(store));
+        t.oncomplete = () => resolve(result.result !== undefined ? result.result : result);
+        t.onerror = () => reject(t.error);
+    });
+}
+
+function idbReq(request) {
+    return new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+const kvGet = (k) => tx('kv', 'readonly', s => idbReq(s.get(k))).then(r => r ? r.v : undefined);
+const kvSet = (k, v) => tx('kv', 'readwrite', s => idbReq(s.put({ k, v })));
+
+// ════ ZIP (lector mínimo, sin librerías) ════
+
+function zipEntries(buf) {
+    const dv = new DataView(buf);
+    let eocd = -1;
+    const min = Math.max(0, buf.byteLength - 22 - 65535);
+    for (let i = buf.byteLength - 22; i >= min; i--) {
+        if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+    }
+    if (eocd < 0) throw new Error('El archivo no es un ZIP válido');
+    const count = dv.getUint16(eocd + 10, true);
+    let off = dv.getUint32(eocd + 16, true);
+    const entries = {};
+    const dec = new TextDecoder();
+    for (let n = 0; n < count; n++) {
+        if (dv.getUint32(off, true) !== 0x02014b50) throw new Error('ZIP corrupto');
+        const method = dv.getUint16(off + 10, true);
+        const csize = dv.getUint32(off + 20, true);
+        const nameLen = dv.getUint16(off + 28, true);
+        const extraLen = dv.getUint16(off + 30, true);
+        const commentLen = dv.getUint16(off + 32, true);
+        const lho = dv.getUint32(off + 42, true);
+        const name = dec.decode(new Uint8Array(buf, off + 46, nameLen));
+        entries[name] = { method, csize, lho };
+        off += 46 + nameLen + extraLen + commentLen;
+    }
+    return entries;
+}
+
+async function zipRead(buf, entry) {
+    const dv = new DataView(buf);
+    const nameLen = dv.getUint16(entry.lho + 26, true);
+    const extraLen = dv.getUint16(entry.lho + 28, true);
+    const start = entry.lho + 30 + nameLen + extraLen;
+    const data = buf.slice(start, start + entry.csize);
+    if (entry.method === 0) return data;
+    if (entry.method === 8) {
+        const ds = new DecompressionStream('deflate-raw');
+        const resp = new Response(new Blob([data]).stream().pipeThrough(ds));
+        return await resp.arrayBuffer();
+    }
+    throw new Error('Compresión ZIP no soportada (método ' + entry.method + ')');
+}
+
+// ════ Importación de libros ════
+
+const AUDIO_MIME = { '.mp3': 'audio/mpeg', '.wav': 'audio/wav' };
+
+async function importZip(buf) {
+    const entries = zipEntries(buf);
+    if (!entries['metadata.json']) throw new Error('El ZIP no contiene metadata.json');
+    const meta = JSON.parse(new TextDecoder().decode(await zipRead(buf, entries['metadata.json'])));
+
+    const bookId = await tx('books', 'readwrite', s => idbReq(s.add({
+        title: meta.title, author: meta.author || '', format: meta.format || 'zip',
+        total_segments: meta.total_segments, created_at: new Date().toISOString(),
+    })));
+
+    for (const seg of meta.segments) {
+        let hasAudio = false, ext = '';
+        if (seg.audio_file && entries[seg.audio_file]) {
+            ext = seg.audio_file.slice(seg.audio_file.lastIndexOf('.'));
+            const audioBuf = await zipRead(buf, entries[seg.audio_file]);
+            const blob = new Blob([audioBuf], { type: AUDIO_MIME[ext] || 'audio/mpeg' });
+            await tx('audio', 'readwrite', s => idbReq(s.put({ book_id: bookId, idx: seg.segment_index, blob })));
+            hasAudio = true;
+        }
+        await tx('segments', 'readwrite', s => idbReq(s.put({
+            book_id: bookId, idx: seg.segment_index, text: seg.text, hasAudio, ext,
+        })));
+    }
+    return { bookId, title: meta.title };
+}
+
+async function deleteBook(bookId) {
+    await tx('books', 'readwrite', s => idbReq(s.delete(bookId)));
+    const range = IDBKeyRange.bound([bookId, 0], [bookId, Infinity]);
+    await tx('segments', 'readwrite', s => idbReq(s.delete(range)));
+    await tx('audio', 'readwrite', s => idbReq(s.delete(range)));
+    await kvSet('progress:' + bookId, undefined);
+}
+
+// ════ Sincronización con GitHub (repo público, sin token) ════
+
+async function downloadAsset(asset) {
+    try {
+        const r = await fetch(asset.url, { headers: { 'Accept': 'application/octet-stream' } });
+        if (r.ok) return await r.arrayBuffer();
+    } catch (e) { /* probar la otra URL */ }
+    const r2 = await fetch(asset.browser_download_url);
+    if (!r2.ok) throw new Error('Descarga fallida: HTTP ' + r2.status);
+    return await r2.arrayBuffer();
+}
+
+async function syncNow() {
+    const repo = (await kvGet('repo')) || DEFAULT_REPO;
+    setSync('Buscando libros en GitHub (' + repo + ')...');
+    let releases;
+    try {
+        const r = await fetch('https://api.github.com/repos/' + repo + '/releases?per_page=100');
+        if (!r.ok) throw new Error('GitHub respondió HTTP ' + r.status);
+        releases = await r.json();
+    } catch (e) {
+        setSync('Sin conexión con GitHub: ' + e.message + ' — tus libros ya descargados siguen disponibles.', true);
+        return;
+    }
+    const bookReleases = releases.filter(r => r.tag_name && r.tag_name.startsWith('book-') && (r.assets || []).length);
+    if (!bookReleases.length) {
+        setSync('Conectado a ' + repo + ' — aún no hay libros publicados. El equipo principal debe ejecutar sync_to_github.py.');
+        return;
+    }
+    let imported = 0;
+    for (const rel of bookReleases) {
+        const asset = rel.assets[0];
+        const rec = await kvGet('tag:' + rel.tag_name);
+        if (rec && rec.assetId === asset.id) continue;
+        try {
+            setSync('Descargando "' + (rel.name || rel.tag_name) + '" (' + (asset.size / 1048576).toFixed(1) + ' MB)...');
+            const buf = await downloadAsset(asset);
+            if (rec) await deleteBook(rec.bookId);  // el libro fue re-publicado: reemplazar
+            const info = await importZip(buf);
+            await kvSet('tag:' + rel.tag_name, { assetId: asset.id, bookId: info.bookId });
+            imported++;
+        } catch (e) {
+            setSync('Error importando ' + rel.tag_name + ': ' + e.message, true);
+            return;
+        }
+    }
+    const hora = new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+    setSync(imported ? '✓ ' + imported + ' libro(s) nuevos descargados (' + hora + ')'
+                     : 'Todo al día — sin libros nuevos (' + hora + ')');
+    if (imported) await renderLibrary();
+}
+
+function setSync(text, isError) {
+    const bar = document.getElementById('syncBar');
+    document.getElementById('syncStatusText').textContent = text;
+    bar.classList.toggle('sync-error', !!isError);
+}
+
+// ════ Vista: Biblioteca ════
+
+function esc(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+}
+
+async function renderLibrary() {
+    const books = await tx('books', 'readonly', s => idbReq(s.getAll()));
+    const list = document.getElementById('booksList');
+    if (!books.length) {
+        list.innerHTML = '<p class="loading">Sin libros todavía. Pulsa "Buscar libros nuevos" (necesita internet) o arrastra un .zip.</p>';
+        return;
+    }
+    list.innerHTML = '';
+    for (const book of books) {
+        const progress = (await kvGet('progress:' + book.id)) || 0;
+        const readPct = Math.round((progress / book.total_segments) * 100) || 0;
+        const card = document.createElement('div');
+        card.className = 'book-card';
+        card.innerHTML =
+            '<h3>' + esc(book.title) + '</h3>' +
+            '<p><strong>' + esc(book.author || 'Autor desconocido') + '</strong> · ' + book.total_segments + ' segmentos</p>' +
+            '<div class="progress-label">Lectura: ' + readPct + '%</div>' +
+            '<div class="progress-bar-small"><div class="progress-fill" style="width:' + readPct + '%"></div></div>' +
+            '<div class="book-actions">' +
+            '<button class="btn btn-primary" data-action="play">▶ Escuchar</button>' +
+            '<button class="btn btn-secondary" data-action="reset">↺ Reiniciar</button>' +
+            '<button class="btn btn-secondary" data-action="delete" style="flex:0 0 auto;">🗑</button>' +
+            '</div>';
+        card.querySelector('[data-action=play]').addEventListener('click', () => openPlayer(book.id));
+        card.querySelector('[data-action=reset]').addEventListener('click', async () => {
+            if (!confirm('¿Reiniciar el progreso de "' + book.title + '"? Volverás al inicio.')) return;
+            await kvSet('progress:' + book.id, 0);
+            await renderLibrary();
+        });
+        card.querySelector('[data-action=delete]').addEventListener('click', async () => {
+            if (!confirm('¿Borrar "' + book.title + '" de este navegador? Podrás volver a descargarlo.')) return;
+            await deleteBook(book.id);
+            await renderLibrary();
+        });
+        list.appendChild(card);
+    }
+}
+
+function setupImport() {
+    const box = document.getElementById('importBox');
+    const input = document.getElementById('fileInput');
+    box.addEventListener('click', () => input.click());
+    box.addEventListener('dragover', e => { e.preventDefault(); box.classList.add('upload-box--drag'); });
+    box.addEventListener('dragleave', () => box.classList.remove('upload-box--drag'));
+    box.addEventListener('drop', e => {
+        e.preventDefault();
+        box.classList.remove('upload-box--drag');
+        if (e.dataTransfer.files.length) handleZipFile(e.dataTransfer.files[0]);
+    });
+    input.addEventListener('change', () => { if (input.files.length) handleZipFile(input.files[0]); });
+}
+
+async function handleZipFile(file) {
+    setSync('Importando ' + file.name + '...');
+    try {
+        const info = await importZip(await file.arrayBuffer());
+        setSync('✓ Importado: ' + info.title);
+        await renderLibrary();
+    } catch (e) {
+        setSync('Error importando: ' + e.message, true);
+    }
+    document.getElementById('fileInput').value = '';
+}
+
+// ════ Vista: Reproductor ════
+
+const player = { bookId: null, segments: [], current: 0, objectUrl: null };
+
+async function openPlayer(bookId) {
+    const book = await tx('books', 'readonly', s => idbReq(s.get(bookId)));
+    if (!book) return;
+    player.bookId = bookId;
+    player.segments = await tx('segments', 'readonly', s =>
+        idbReq(s.getAll(IDBKeyRange.bound([bookId, 0], [bookId, Infinity]))));
+    player.segments.sort((a, b) => a.idx - b.idx);
+
+    document.getElementById('bookTitle').textContent = book.title;
+    document.getElementById('totalSegments').textContent = player.segments.length;
+
+    const list = document.getElementById('segmentsList');
+    list.innerHTML = '';
+    player.segments.forEach((seg, i) => {
+        const item = document.createElement('div');
+        item.className = 'segment-item' + (seg.hasAudio ? ' cached' : '');
+        if (!seg.hasAudio) item.style.opacity = '0.5';
+        item.innerHTML = '<span class="segment-dot"></span>' + (i + 1);
+        item.addEventListener('click', () => loadSegment(i));
+        list.appendChild(item);
+    });
+
+    document.getElementById('viewLibrary').style.display = 'none';
+    document.getElementById('viewPlayer').style.display = '';
+    await loadSegment((await kvGet('progress:' + bookId)) || 0);
+}
+
+async function loadSegment(index) {
+    if (index < 0 || index >= player.segments.length) return;
+    player.current = index;
+    await kvSet('progress:' + player.bookId, index);
+
+    const seg = player.segments[index];
+    document.getElementById('segmentText').textContent = seg.text;
+    document.getElementById('currentSegment').textContent = index + 1;
+    const pct = Math.round(((index + 1) / player.segments.length) * 100);
+    document.getElementById('progressPercent').textContent = pct + '%';
+    document.getElementById('progressSlider').value = pct;
+    document.querySelectorAll('.segment-item').forEach((el, i) => el.classList.toggle('active', i === index));
+
+    const audio = document.getElementById('audioPlayer');
+    const noAudioBox = document.getElementById('noAudioBox');
+    if (player.objectUrl) { URL.revokeObjectURL(player.objectUrl); player.objectUrl = null; }
+
+    const rec = seg.hasAudio
+        ? await tx('audio', 'readonly', s => idbReq(s.get([player.bookId, seg.idx])))
+        : null;
+    if (rec && rec.blob) {
+        noAudioBox.style.display = 'none';
+        player.objectUrl = URL.createObjectURL(rec.blob);
+        audio.src = player.objectUrl;
+        audio.playbackRate = parseFloat(document.getElementById('speedSelect').value);
+        audio.play().catch(() => {});  // autoplay puede requerir un clic previo
+    } else {
+        noAudioBox.style.display = 'flex';
+        audio.removeAttribute('src');
+        audio.load();
+    }
+    syncPlayBtn();
+}
+
+function syncPlayBtn() {
+    const audio = document.getElementById('audioPlayer');
+    const btn = document.getElementById('playPauseBtn');
+    const hasAudio = !!audio.getAttribute('src');
+    btn.disabled = !hasAudio;
+    btn.textContent = !hasAudio ? 'Sin audio' : (audio.paused ? '▶ Reproducir' : '⏸ Pausar');
+}
+
+function setupPlayerControls() {
+    const audio = document.getElementById('audioPlayer');
+    document.getElementById('backBtn').addEventListener('click', () => {
+        audio.pause();
+        document.getElementById('viewPlayer').style.display = 'none';
+        document.getElementById('viewLibrary').style.display = '';
+        renderLibrary();
+    });
+    document.getElementById('prevBtn').addEventListener('click', () => loadSegment(player.current - 1));
+    document.getElementById('nextBtn').addEventListener('click', () => loadSegment(player.current + 1));
+    document.getElementById('playPauseBtn').addEventListener('click', () => {
+        if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+    });
+    audio.addEventListener('play', syncPlayBtn);
+    audio.addEventListener('pause', syncPlayBtn);
+    audio.addEventListener('ended', () => {
+        if (player.current < player.segments.length - 1) loadSegment(player.current + 1);
+    });
+    document.getElementById('speedSelect').addEventListener('change', e => {
+        audio.playbackRate = parseFloat(e.target.value);
+    });
+    document.getElementById('progressSlider').addEventListener('change', e => {
+        const idx = Math.min(Math.floor((parseInt(e.target.value) / 100) * player.segments.length), player.segments.length - 1);
+        loadSegment(idx);
+    });
+}
+
+// ════ Arranque ════
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        _db = await openDb();
+    } catch (e) {
+        document.getElementById('booksList').innerHTML =
+            '<p class="loading">Este navegador no permite guardar datos aquí (' + esc(e.message) +
+            '). Prueba con Chrome o Edge.</p>';
+        return;
+    }
+    setupImport();
+    setupPlayerControls();
+    document.getElementById('syncBtn').addEventListener('click', syncNow);
+    await renderLibrary();
+    syncNow();
+    setInterval(syncNow, SYNC_INTERVAL_MS);
+});
+</script>
+</body>
+</html>
