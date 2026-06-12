@@ -59,24 +59,43 @@ if not errorlevel 1 (
 )
 
 :: --- PASO 3b: Descargar el instalador oficial de python.org ---
-:: El instalador es de 64 bits; en un Windows de 32 bits no funcionaria
-:: y el usuario entraria en un bucle de "vuelve a ejecutar run.bat".
-if "%PROCESSOR_ARCHITECTURE%"=="x86" if not defined PROCESSOR_ARCHITEW6432 (
-    echo       Este equipo es Windows de 32 bits: el instalador automatico
-    echo       no sirve aqui. Instala Python a mano desde python.org.
-    goto manual
-)
-echo [3/3] Descargando instalador oficial de Python %PYTHON_INSTALL_VERSION%...
-curl.exe -L --fail -o "%TEMP%\python-setup.exe" "https://www.python.org/ftp/python/%PYTHON_INSTALL_VERSION%/python-%PYTHON_INSTALL_VERSION%-amd64.exe"
+:: Elegir el instalador segun la arquitectura REAL del equipo; un .exe
+:: de otra arquitectura provoca el dialogo de Windows
+:: "Esta aplicacion no se puede ejecutar en tu equipo".
+::   AMD64 -> -amd64  |  ARM64 -> -arm64  |  x86 de 32 bits -> sin sufijo
+set "PYSUFFIX=-amd64"
+if /i "%PROCESSOR_ARCHITECTURE%"=="ARM64" set "PYSUFFIX=-arm64"
+if /i "%PROCESSOR_ARCHITECTURE%"=="x86" if not defined PROCESSOR_ARCHITEW6432 set "PYSUFFIX="
+echo [3/3] Descargando instalador oficial de Python %PYTHON_INSTALL_VERSION% para %PROCESSOR_ARCHITECTURE%...
+curl.exe -L --fail -o "%TEMP%\python-setup.exe" "https://www.python.org/ftp/python/%PYTHON_INSTALL_VERSION%/python-%PYTHON_INSTALL_VERSION%%PYSUFFIX%.exe"
 if errorlevel 1 (
     echo       ERROR: fallo la descarga del instalador.
     goto manual
 )
+:: Una descarga cortada deja un .exe corrupto que da el mismo dialogo
+:: de Windows; el instalador real pesa mas de 10 MB.
+set "SETUPSIZE=0"
+for %%F in ("%TEMP%\python-setup.exe") do set "SETUPSIZE=%%~zF"
+if %SETUPSIZE% LSS 10000000 (
+    echo       ERROR: la descarga quedo incompleta. Revisa la conexion
+    echo       y vuelve a ejecutar run.bat.
+    del "%TEMP%\python-setup.exe" >nul 2>&1
+    goto manual
+)
 echo       Instalando Python en modo silencioso, puede tardar unos minutos...
 "%TEMP%\python-setup.exe" /quiet InstallAllUsers=0 PrependPath=1
+set "SETUPERR=%errorlevel%"
 del "%TEMP%\python-setup.exe" >nul 2>&1
 call :try_known_paths
 if defined PYEXE goto launch
+if not "%SETUPERR%"=="0" (
+    echo       ERROR: el instalador de Python no pudo ejecutarse en este
+    echo       equipo ^(codigo %SETUPERR%^). Si Windows mostro el aviso
+    echo       "Esta aplicacion no se puede ejecutar en tu equipo",
+    echo       instala Python a mano desde python.org eligiendo el
+    echo       instalador para tu tipo de Windows.
+    goto manual
+)
 
 echo.
 echo Python quedo instalado, pero esta ventana todavia no lo ve.
