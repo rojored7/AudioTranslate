@@ -107,14 +107,22 @@ contiene `metadata.json` (texto + estructura) y la carpeta `audio/`.
 
 ## Parte 2 — PC B: el Reproductor
 
-Carpeta **`player_lite/`**. Es independiente: cópiala a PC B (USB, red, lo que
-sea). **No necesita el resto del proyecto.**
+A PC B solo hay que llevarle **UN archivo: `instalar_equipo2.bat`**
+(mándalo por correo, WhatsApp, USB, lo que sea). Todo lo demás se lo
+descarga él solo desde GitHub.
 
-Instrucciones para alguien no técnico: ver `player_lite/LEEME.txt`. Resumen:
+1. Doble clic en **`instalar_equipo2.bat`**.
+2. La primera vez pide dos datos (los mismos de PC A): el repo
+   (`usuario/repositorio`) y el token (`ghp_...`).
+3. Descarga el código del repo, lo instala en una carpeta `AudioBookLite`
+   junto al .bat, guarda el `.env` y arranca `run.bat` → abre solo en
+   **http://localhost:9002**.
 
-1. Copiar `player_lite/.env.example` a `player_lite/.env` y pegar el mismo
-   `GITHUB_TOKEN` y `GITHUB_REPO` de PC A.
-2. Doble clic en **`run.bat`** → abre solo en **http://localhost:9002**.
+**Actualizar PC B** = volver a ejecutar `instalar_equipo2.bat`. Baja la
+última versión del código sin tocar los libros, el audio ni el progreso.
+
+(Alternativa sin GitHub: copiar la carpeta `player_lite/` completa por USB
+y hacer doble clic en su `run.bat`; ver `player_lite/LEEME.txt`.)
 
 **Python se instala solo:** `run.bat` analiza el equipo; si no encuentra
 Python ≥ 3.10 lo instala automáticamente (primero con `winget`, si no
