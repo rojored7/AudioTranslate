@@ -1,0 +1,52 @@
+# ── AudioTranslate — PC A "EL ESTUDIO" ────────────────────────────────────────
+# Levanta el equipo que procesa. Uso:
+#
+#   docker compose up -d --build          # solo el estudio (Kokoro/Edge)
+#   docker compose --profile ollama up -d # estudio + Ollama (voz Orpheus)
+#
+# La biblioteca (DB + libros + audio) vive en ./data y persiste entre reinicios.
+
+services:
+  studio:
+    build: .
+    container_name: audiotranslate-studio
+    ports:
+      - "9001:9001"
+    volumes:
+      # Toda la biblioteca persistente: audiobookplayer.db, books/, audio_cache/
+      - ./data:/app/data
+    # GITHUB_TOKEN y GITHUB_REPO viven aquí → el auto-sync a Releases funciona
+    # desde dentro del contenedor cuando termina de generar audio.
+    # required: false → el estudio arranca igual aunque aún no exista el .env
+    # (en ese caso solo no auto-publica a GitHub).
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # El sync interno llama a la API local del propio contenedor.
+      LOCAL_API_URL: "http://localhost:9001"
+    restart: unless-stopped
+
+  # ── Ollama (opcional) ────────────────────────────────────────────────────────
+  # Solo se levanta con: docker compose --profile ollama up -d
+  # Después, en la app (Configuración) pon ollama_url = http://ollama:11434
+  ollama:
+    image: ollama/ollama:latest
+    container_name: audiotranslate-ollama
+    profiles: ["ollama"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    restart: unless-stopped
+    # GPU NVIDIA (opcional, recomendado para Orpheus). Requiere nvidia-container-toolkit.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+volumes:
+  ollama-models:

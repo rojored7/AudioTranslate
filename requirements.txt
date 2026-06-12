@@ -1,0 +1,26 @@
+# ── Núcleo (siempre necesario para arrancar la app) ──────────────────────────
+fastapi==0.104.1
+uvicorn==0.24.0
+python-multipart==0.0.6
+pydantic==2.5.0
+python-dotenv>=1.0.0
+requests==2.31.0
+
+# ── Lectura de libros ─────────────────────────────────────────────────────────
+pdfplumber==0.10.3
+ebooklib==0.18.0
+
+# ── Motor TTS por defecto: Edge TTS (voces neurales en español, requiere internet)
+edge-tts>=7.0.0
+
+# ── Motor TTS opcional: Ollama/Orpheus (decodifica con SNAC, GPU recomendada) ──
+# Si NO usas Orpheus puedes borrar estas 4 líneas para una imagen mucho más liviana.
+snac>=0.0.2
+numpy>=1.21.0
+scipy>=1.7.0
+soundfile>=0.12.0
+
+# ── Motor TTS opcional: Kokoro ────────────────────────────────────────────────
+# El código usa `from kokoro import KPipeline`. Para habilitarlo instala aparte:
+#     pip install kokoro
+# (NO es el paquete "kokoro-onnx", que tiene otra API y no es compatible.)

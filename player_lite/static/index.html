@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AudioBook Lite - Biblioteca</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📚 AudioBook Lite</h1>
+            <span style="font-size:0.85em;color:var(--text-light);">Solo reproducción</span>
+        </header>
+
+        <!-- Sync Status Bar (visible solo si GitHub sync está configurado) -->
+        <div id="syncBar" class="sync-bar" style="display:none;">
+            <span id="syncStatusText">Verificando sincronización...</span>
+            <button class="btn btn-small" onclick="triggerSync()">↺ Sincronizar ahora</button>
+        </div>
+
+        <!-- Import Section -->
+        <section class="upload-section">
+            <div class="upload-box" id="importBox">
+                <p>📦 Arrastra un archivo .zip exportado aquí</p>
+                <input type="file" id="fileInput" accept=".zip" style="display:none;">
+                <p style="font-size:0.9em;color:#666;">O haz clic para seleccionar el ZIP exportado desde PC A</p>
+            </div>
+            <div id="importProgress" class="upload-progress" style="display:none;">
+                <div class="progress-bar"><div id="progressFill" style="width:40%"></div></div>
+                <p id="importStatus">Importando libro...</p>
+            </div>
+        </section>
+
+        <!-- Books List -->
+        <section class="books-section">
+            <h2>Mis Libros</h2>
+            <div id="booksList" class="books-list">
+                <p class="loading">Cargando libros...</p>
+            </div>
+        </section>
+    </div>
+
+    <script src="/static/app_lite.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+* text=auto
+
+# Los .bat DEBEN ser CRLF: cmd.exe parsea mal los archivos por lotes con
+# finales LF (bug real ya sufrido en este proyecto). git archive / los ZIP
+# de GitHub respetan esta regla.
+*.bat text eol=crlf
+*.txt text eol=crlf
+
+*.py  text eol=lf
+*.js  text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md  text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+
+*.mp3 binary
+*.wav binary
+*.db  binary
+*.pdf binary
+*.epub binary

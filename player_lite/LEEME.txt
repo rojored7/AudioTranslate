@@ -1,0 +1,67 @@
+============================================================
+  AUDIOBOOK LITE  —  Reproductor (PC B)
+  Instalacion en 3 pasos
+============================================================
+
+Esta carpeta es SOLO para escuchar. No procesa nada, no genera
+audio. Solo descarga los libros que el otro equipo ya preparo y
+los reproduce. Recuerda donde te quedaste en cada libro.
+
+
+------------------------------------------------------------
+PASO 1 — Python: NO hay que instalar nada a mano
+------------------------------------------------------------
+  run.bat analiza el equipo solo:
+
+  - Si ya tienes Python 3.10 o superior, lo usa y listo.
+  - Si NO lo tienes, lo descarga e instala automaticamente
+    (necesita internet). Puede tardar unos minutos la primera
+    vez. Si al final dice "cierra esta ventana y vuelve a
+    ejecutar run.bat", hazle caso: doble clic otra vez y ya.
+
+  Solo si no hay internet tendras que instalarlo a mano desde
+  https://python.org (marca "Add Python to PATH" al instalar).
+
+
+------------------------------------------------------------
+PASO 2 — Configurar de donde bajar los libros
+------------------------------------------------------------
+  1. En esta carpeta, copia el archivo  ".env.example"
+     y renombra la copia a   ".env"   (sin nada antes del punto).
+  2. Abrelo con el Bloc de notas y pega los dos datos que te
+     paso la persona del otro equipo:
+
+        GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxx
+        GITHUB_REPO=usuario/repositorio
+
+  3. Guarda y cierra.
+
+  (Si no pones estos datos, igual funciona: podras arrastrar
+   archivos .zip de libros a mano, pero no se bajaran solos.)
+
+
+------------------------------------------------------------
+PASO 3 — Abrir el reproductor
+------------------------------------------------------------
+  Haz doble clic en   run.bat
+
+  Se abre solo en el navegador (http://localhost:9002).
+  Cada 5 minutos revisa si hay libros nuevos y los baja solo.
+  Para detenerlo: cierra la ventana negra o pulsa Ctrl+C.
+
+
+------------------------------------------------------------
+COSAS UTILES
+------------------------------------------------------------
+  - Boton "Sincronizar ahora": baja los libros nuevos al instante
+    sin esperar los 5 minutos.
+
+  - Boton "Reiniciar": vuelve un libro al principio (el progreso
+    de lectura pasa a 0%). Te pide confirmacion antes.
+
+  - Sin internet / sin token: arrastra un archivo .zip de libro
+    (te lo pasan por USB) a la ventana del reproductor y se importa.
+
+  - Todo se guarda en la subcarpeta  data\  (los libros, el audio,
+    y por donde vas en cada uno). Si la copias, te llevas todo.
+============================================================

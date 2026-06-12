@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AudioBook Player - Reproductor</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="player-page">
+
+        <!-- Header -->
+        <header class="player-header">
+            <button class="btn-back" id="backBtn">← Biblioteca</button>
+            <h1 id="bookTitle">Cargando...</h1>
+            <div class="tts-status" id="ttsStatus">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Verificando...</span>
+            </div>
+        </header>
+
+        <!-- TTS Mode Banner -->
+        <div id="ttsBanner" class="tts-banner" style="display:none;"></div>
+
+        <div class="player-body">
+
+            <!-- Main: text + audio -->
+            <main class="player-main">
+
+                <!-- Loading / Generating indicator -->
+                <div id="generatingBox" class="generating-box" style="display:none;">
+                    <div class="spinner"></div>
+                    <span id="generatingText">Generando audio con Orpheus...</span>
+                </div>
+
+                <!-- Segment Text -->
+                <section class="segment-text-section">
+                    <div class="segment-text" id="segmentText">Cargando segmento...</div>
+                </section>
+
+                <!-- Audio Player -->
+                <section class="audio-player-section">
+                    <audio id="audioPlayer" controls style="width:100%;"></audio>
+                </section>
+
+                <!-- Controls -->
+                <section class="player-controls">
+                    <button id="prevBtn" class="btn btn-control">⏮ Anterior</button>
+                    <button id="playPauseBtn" class="btn btn-control btn-primary" style="min-width:140px;">▶ Reproducir</button>
+                    <button id="nextBtn" class="btn btn-control">Siguiente ⏭</button>
+                </section>
+
+                <!-- Speed control -->
+                <section class="speed-section">
+                    <label for="speedSelect">Velocidad:</label>
+                    <select id="speedSelect">
+                        <option value="0.5">0.5×</option>
+                        <option value="0.75">0.75×</option>
+                        <option value="1" selected>1×</option>
+                        <option value="1.25">1.25×</option>
+                        <option value="1.5">1.5×</option>
+                        <option value="1.75">1.75×</option>
+                        <option value="2">2×</option>
+                    </select>
+                </section>
+
+                <!-- Progress -->
+                <section class="progress-section">
+                    <div class="progress-info">
+                        Segmento <span id="currentSegment">0</span> de <span id="totalSegments">0</span>
+                        &nbsp;·&nbsp;
+                        <span id="progressPercent">0%</span> del libro
+                    </div>
+                    <input type="range" id="progressSlider" class="progress-slider" min="0" max="100" value="0">
+                </section>
+
+
+            </main>
+
+            <!-- Sidebar: segments list -->
+            <aside class="segments-sidebar">
+                <h3>Segmentos</h3>
+                <div id="segmentsList" class="segments-list">
+                    <p class="loading">Cargando...</p>
+                </div>
+            </aside>
+
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => { initPlayer(); });
+    </script>
+</body>
+</html>

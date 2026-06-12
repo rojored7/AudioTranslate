@@ -1,0 +1,25 @@
+# No copiar a la imagen del estudio:
+venv/
+__pycache__/
+*.py[cod]
+.git/
+.gitignore
+.playwright-mcp/
+.claude/
+
+# El reproductor (PC B) no vive dentro de la imagen de PC A:
+player_lite/
+
+# Datos y libros de muestra → van por volumen, no horneados en la imagen:
+data/
+dataaudio_cache/
+databooks/
+Libros/
+
+# Secretos: el .env se inyecta en runtime (env_file), nunca en la imagen:
+.env
+
+*.log
+*.db
+.pytest_cache/
+.coverage

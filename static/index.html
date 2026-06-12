@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AudioBook Player - Biblioteca</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>📚 AudioBook Player</h1>
+            <button id="settingsBtn" class="btn btn-secondary">⚙️ Configuración</button>
+        </header>
+
+        <!-- TTS Mode Banner -->
+        <div id="ttsBanner" class="tts-banner" style="display:none;"></div>
+
+        <!-- Upload Section -->
+        <section class="upload-section">
+            <div class="upload-box" id="uploadBox">
+                <p>📤 Arrastra un libro aquí (PDF, EPUB, TXT)</p>
+                <input type="file" id="fileInput" accept=".pdf,.epub,.txt" style="display:none;">
+                <p style="font-size: 0.9em; color: #666;">O haz clic para seleccionar</p>
+            </div>
+            <div id="uploadProgress" class="upload-progress" style="display:none;">
+                <div class="progress-bar"><div id="progressFill"></div></div>
+                <p id="uploadStatus">Subiendo...</p>
+            </div>
+        </section>
+
+        <!-- Books List -->
+        <section class="books-section">
+            <h2>Mis Libros</h2>
+            <div id="booksList" class="books-list">
+                <p class="loading">Cargando libros...</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configuración de Voz</h2>
+                <button class="close-btn" id="closeSettings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label for="ttsEngine">Motor TTS:</label>
+                    <select id="ttsEngine">
+                        <option value="edge_tts">🇪🇸 Edge TTS — Español neural (recomendado)</option>
+                        <option value="ollama">Ollama/Orpheus (inglés)</option>
+                        <option value="kokoro">Kokoro ONNX (inglés)</option>
+                    </select>
+                </div>
+
+                <!-- Edge TTS Settings -->
+                <div id="edgeTtsSettings" class="setting-group">
+                    <label for="edgeTtsVoice">Voz en español:</label>
+                    <select id="edgeTtsVoice">
+                        <optgroup label="España">
+                            <option value="es-ES-AlvaroNeural">Álvaro (masculino) — España</option>
+                            <option value="es-ES-ElviraNeural">Elvira (femenino) — España</option>
+                        </optgroup>
+                        <optgroup label="México">
+                            <option value="es-MX-JorgeNeural">Jorge (masculino) — México</option>
+                            <option value="es-MX-DaliaNeural">Dalia (femenino) — México</option>
+                        </optgroup>
+                        <optgroup label="Latinoamérica">
+                            <option value="es-AR-TomasNeural">Tomás (masculino) — Argentina</option>
+                            <option value="es-CO-GonzaloNeural">Gonzalo (masculino) — Colombia</option>
+                            <option value="es-CL-LorenzoNeural">Lorenzo (masculino) — Chile</option>
+                            <option value="es-PE-AlexNeural">Alex (masculino) — Perú</option>
+                        </optgroup>
+                    </select>
+                    <p style="font-size:0.82em;color:#64748b;margin-top:6px;">Requiere conexión a internet. Calidad de voz neural muy natural.</p>
+                </div>
+
+                <!-- Ollama Settings -->
+                <div id="ollamaSettings" class="setting-group" style="display:none;">
+                    <label for="ollamaUrl">URL de Ollama:</label>
+                    <input type="text" id="ollamaUrl" placeholder="http://localhost:11434">
+
+                    <label for="ollamaModel" style="margin-top:10px;">Modelo:</label>
+                    <input type="text" id="ollamaModel" placeholder="legraphista/orpheus:q8_0">
+                </div>
+
+                <!-- Kokoro Settings -->
+                <div id="kokoroSettings" class="setting-group" style="display:none;">
+                    <label for="kokoroVoice">Voz Kokoro:</label>
+                    <select id="kokoroVoice">
+                        <option value="af_heart">AF Heart</option>
+                        <option value="af_bella">AF Bella</option>
+                        <option value="af_sarah">AF Sarah</option>
+                        <option value="af_nicole">AF Nicole</option>
+                        <option value="am_adam">AM Adam</option>
+                        <option value="am_michael">AM Michael</option>
+                    </select>
+                </div>
+
+                <button id="testVoiceBtn" class="btn btn-primary">🔊 Probar Voz</button>
+                <p id="testStatus" style="font-size: 0.9em; margin-top: 10px;"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="saveSettings" class="btn btn-primary">Guardar</button>
+                <button id="cancelSettings" class="btn btn-secondary">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio for testing -->
+    <audio id="testAudio" style="display:none;"></audio>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
